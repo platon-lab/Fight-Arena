@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Арена Битви ⚔️</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
+
+  :root {
+    --bg: #0a0a12;
+    --arena-bg: #0d0d1a;
+    --gold: #f0c040;
+    --red: #ff3355;
+    --blue: #33aaff;
+    --green: #44ff88;
+    --purple: #aa44ff;
+    --glow-red: 0 0 20px #ff3355aa;
+    --glow-blue: 0 0 20px #33aaffaa;
+    --glow-gold: 0 0 30px #f0c040aa;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Rajdhani', sans-serif;
+    color: #eee;
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridMove 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes gridMove {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(40px); }
+  }
+
+  /* ── HEADER ── */
+  #header {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px;
+    background: rgba(10,10,20,0.92);
+    border-bottom: 1px solid rgba(240,192,64,0.25);
+    z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+
+  #header h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, var(--gold), #ff8c00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+  }
+
+  #stats-bar {
+    display: flex; gap: 24px; align-items: center;
+  }
+
+  .stat-item {
+    display: flex; flex-direction: column; align-items: center;
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  .stat-label {
+    font-size: 0.55rem; letter-spacing: 2px;
+    color: rgba(240,192,64,0.6); text-transform: uppercase;
+  }
+
+  .stat-value {
+    font-size: 1.1rem; font-weight: 700;
+    color: var(--gold);
+    text-shadow: var(--glow-gold);
+    transition: transform 0.2s;
+  }
+
+  .stat-value.bump { transform: scale(1.4); }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: relative; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 24px;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .screen.hidden { display: none; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase;
+    padding: 14px 40px;
+    border: none; border-radius: 4px;
+    cursor: pointer;
+    position: relative; overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.12);
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+  }
+
+  .btn:hover::before { transform: translateX(0); }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(1px); }
+
+  .btn-gold {
+    background: linear-gradient(135deg, #f0c040, #d4890a);
+    color: #0a0a12;
+    box-shadow: 0 4px 20px rgba(240,192,64,0.4);
+  }
+
+  .btn-gold:hover { box-shadow: 0 6px 30px rgba(240,192,64,0.6); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid rgba(240,192,64,0.4);
+    box-shadow: inset 0 0 20px rgba(240,192,64,0.05);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(240,192,64,0.2);
+  }
+
+  /* ── START SCREEN ── */
+  #screen-start .title-big {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 900;
+    letter-spacing: 6px;
+    background: linear-gradient(135deg, #f0c040 0%, #ff8c00 50%, #ff3355 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    filter: drop-shadow(0 0 30px rgba(240,192,64,0.4));
+    animation: pulse-title 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-title {
+    0%,100% { filter: drop-shadow(0 0 20px rgba(240,192,64,0.3)); }
+    50%      { filter: drop-shadow(0 0 50px rgba(240,192,64,0.7)); }
+  }
+
+  .subtitle {
+    font-size: 1rem; letter-spacing: 4px;
+    color: rgba(255,255,255,0.4); text-transform: uppercase;
+  }
+
+  /* ── PICK SCREEN ── */
+  #screen-pick h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem; letter-spacing: 4px;
+    color: var(--gold); text-align: center;
+  }
+
+  .pick-row {
+    display: flex; gap: 48px; align-items: center; justify-content: center;
+  }
+
+  .char-card {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    cursor: pointer;
+    padding: 20px;
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .char-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 10px;
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .char-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-6px) scale(1.04);
+    box-shadow: 0 12px 40px rgba(240,192,64,0.25);
+  }
+
+  .char-card:hover::after {
+    opacity: 1;
+    background: radial-gradient(ellipse at 50% 0%, rgba(240,192,64,0.08), transparent 70%);
+  }
+
+  .char-card img {
+    width: 100px; height: 100px;
+    object-fit: cover;
+    border-radius: 16px;
+    filter: drop-shadow(0 4px 16px rgba(0,0,0,0.6));
+  }
+
+  .char-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem; font-weight: 700;
+    letter-spacing: 2px; color: #fff;
+  }
+
+  .vs-divider {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5rem; font-weight: 900;
+    color: var(--red);
+    text-shadow: 0 0 30px var(--red);
+    animation: vs-pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes vs-pulse {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.15); }
+  }
+
+  /* ── POWERS SCREEN ── */
+  #screen-powers h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem; letter-spacing: 4px;
+    color: var(--gold); text-align: center;
+  }
+
+  .powers-row {
+    display: flex; gap: 60px; align-items: flex-start; justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .power-card {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    min-width: 160px;
+  }
+
+  .power-card img {
+    width: 72px; height: 72px;
+    object-fit: cover;
+    border-radius: 50%;
+    filter: drop-shadow(0 0 12px rgba(240,192,64,0.4));
+  }
+
+  .power-card .char-name {
+    font-size: 0.75rem;
+  }
+
+  .power-list {
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: center;
+  }
+
+  .power-badge {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem; font-weight: 600; letter-spacing: 1px;
+    border: 1px solid;
+    animation: badge-in 0.4s ease backwards;
+  }
+
+  @keyframes badge-in {
+    from { opacity: 0; transform: scale(0.7); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  .power-badge.strong  { background: rgba(255,60,60,0.15); border-color: #ff3c3c; color: #ff8080; }
+  .power-badge.tough   { background: rgba(60,255,100,0.12); border-color: #44ff88; color: #88ffaa; }
+  .power-badge.jumpy   { background: rgba(100,180,255,0.12); border-color: #33aaff; color: #88ccff; }
+  .power-badge.fast    { background: rgba(255,220,60,0.12); border-color: #f0c040; color: #f0d070; }
+  .power-badge.heavy   { background: rgba(180,80,255,0.12); border-color: #aa44ff; color: #cc88ff; }
+
+  /* ── GAME SCREEN ── */
+  #screen-game {
+    width: 100vw; height: 100vh;
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 5;
+  }
+
+  #screen-game.hidden { display: none; }
+
+  #arena-wrap {
+    position: relative;
+    margin-top: 60px; /* header height */
+  }
+
+  #game-canvas {
+    border-radius: 50%;
+    display: block;
+    cursor: none;
+  }
+
+  /* HP bars */
+  #hud {
+    position: absolute;
+    top: -48px; left: 0; right: 0;
+    display: flex; justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+    gap: 12px;
+  }
+
+  .hp-wrap {
+    display: flex; flex-direction: column; gap: 4px;
+    flex: 1;
+  }
+
+  .hp-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem; letter-spacing: 2px;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .hp-bar-bg {
+    height: 10px; border-radius: 5px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .hp-bar-fill {
+    height: 100%; border-radius: 5px;
+    transition: width 0.2s;
+  }
+
+  .hp-bar-fill.p1 { background: linear-gradient(90deg, #ff3355, #ff8844); box-shadow: 0 0 10px #ff3355; }
+  .hp-bar-fill.p2 { background: linear-gradient(90deg, #33aaff, #44ffcc); box-shadow: 0 0 10px #33aaff; }
+
+  .hp-val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem; font-weight: 700;
+  }
+
+  .hp-val.p1 { color: var(--red); text-align: left; }
+  .hp-val.p2 { color: var(--blue); text-align: right; }
+
+  .hp-wrap.p2 .hp-label { text-align: right; }
+  .hp-wrap.p2 .hp-val   { text-align: right; }
+
+  #hud-center {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem; letter-spacing: 2px;
+    color: rgba(240,192,64,0.5);
+    white-space: nowrap;
+  }
+
+  /* ── WIN SCREEN ── */
+  #screen-win {
+    text-align: center;
+  }
+
+  #screen-win .win-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.5rem, 5vw, 3rem);
+    font-weight: 900;
+    letter-spacing: 4px;
+    animation: win-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes win-pulse {
+    0%,100% { filter: drop-shadow(0 0 20px currentColor); }
+    50%      { filter: drop-shadow(0 0 50px currentColor); }
+  }
+
+  .win-title.player-won { color: var(--green); }
+  .win-title.player-lost { color: var(--red); }
+
+  .win-char { width: 120px; height: 120px; object-fit: cover; border-radius: 50%;
+    filter: drop-shadow(0 0 30px rgba(240,192,64,0.5));
+    animation: win-bounce 0.8s ease-in-out infinite alternate;
+  }
+
+  @keyframes win-bounce {
+    from { transform: translateY(0); }
+    to   { transform: translateY(-12px); }
+  }
+
+  .win-score-gained {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.4rem; font-weight: 700;
+    color: var(--gold);
+    text-shadow: var(--glow-gold);
+  }
+
+  /* ── PARTICLES / EFFECTS ── */
+  .hit-flash {
+    position: absolute;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: hit-anim 0.4s ease forwards;
+    transform: translate(-50%, -50%);
+  }
+
+  @keyframes hit-anim {
+    0%   { transform: translate(-50%,-50%) scale(0.2); opacity: 1; }
+    100% { transform: translate(-50%,-50%) scale(1.6); opacity: 0; }
+  }
+
+  /* scrolling particles in bg */
+  .bg-particle {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.12;
+    animation: float-up linear infinite;
+  }
+
+  @keyframes float-up {
+    from { transform: translateY(110vh) rotate(0deg); }
+    to   { transform: translateY(-10vh) rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+
+<div id="bg-particles"></div>
+
+<header id="header">
+  <h1>⚔ АРЕНА БИТВИ</h1>
+  <div id="stats-bar">
+    <div class="stat-item">
+      <span class="stat-label">Бали</span>
+      <span class="stat-value" id="stat-score">0</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Перемоги</span>
+      <span class="stat-value" id="stat-wins">0</span>
+    </div>
+  </div>
+</header>
+
+<div class="screen" id="screen-start">
+  <div class="title-big">АРЕНА<br>БИТВИ</div>
+  <div class="subtitle">Хто переможе сьогодні?</div>
+  <button class="btn btn-gold" onclick="startPick()">⚔ СТАРТ</button>
+</div>
+
+<div class="screen hidden" id="screen-pick">
+  <h2>⚔ ОБЕРИ СВОГО ЧЕМПІОНА ⚔</h2>
+  <div class="pick-row">
+    <div class="char-card" id="card-0" onclick="pickChar(0)">
+      <img id="pick-img-0" src="" alt="">
+      <div class="char-name" id="pick-name-0"></div>
+    </div>
+    <div class="vs-divider">VS</div>
+    <div class="char-card" id="card-1" onclick="pickChar(1)">
+      <img id="pick-img-1" src="" alt="">
+      <div class="char-name" id="pick-name-1"></div>
+    </div>
+  </div>
+  <div class="subtitle" style="font-size:0.75rem">Клікни на персонажа за якого вболіваєш</div>
+</div>
+
+<div class="screen hidden" id="screen-powers">
+  <h2>✨ СУПЕРСИЛИ ✨</h2>
+  <div class="powers-row" id="powers-row"></div>
+  <button class="btn btn-gold" onclick="startGame()" style="margin-top:8px">⚔ В БІЙ!</button>
+</div>
+
+<div class="screen hidden" id="screen-game">
+  <div id="arena-wrap">
+    <div id="hud">
+      <div class="hp-wrap">
+        <div class="hp-label" id="hud-name-0"></div>
+        <div class="hp-bar-bg"><div class="hp-bar-fill p1" id="hp-bar-0"></div></div>
+        <div class="hp-val p1" id="hp-val-0"></div>
+      </div>
+      <div id="hud-center">⚔</div>
+      <div class="hp-wrap p2">
+        <div class="hp-label" id="hud-name-1"></div>
+        <div class="hp-bar-bg"><div class="hp-bar-fill p2" id="hp-bar-1"></div></div>
+        <div class="hp-val p2" id="hp-val-1"></div>
+      </div>
+    </div>
+    <canvas id="game-canvas"></canvas>
+  </div>
+</div>
+
+<div class="screen hidden" id="screen-win">
+  <div class="win-title" id="win-title"></div>
+  <img class="win-char" id="win-img" src="" alt="">
+  <div id="win-subtitle" style="color:rgba(255,255,255,0.5);font-size:0.9rem;letter-spacing:2px;"></div>
+  <div class="win-score-gained" id="win-score-gained"></div>
+  <div style="display:flex;gap:16px;margin-top:8px">
+    <button class="btn btn-gold" onclick="startPick()">⚔ Знову</button>
+    <button class="btn btn-ghost" onclick="showStart()">🏠 Меню</button>
+  </div>
+</div>
+
+<canvas id="game-canvas-hidden" style="display:none"></canvas>
+
+<script>
+// ══════════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════════
+const CHARS = ['Tito','Smartik','Junior','Fil','Milka','Bark'];
+const IMG_PATH = ''; // Тепер шукає фото прямо в папці з грою!
+
+const POWERS_DEF = [
+  { id:'strong', label:'💪 Сильний', cls:'strong',
+    desc:'Подвійний урон',
+    apply: p => { p.dmg *= 2; } },
+  { id:'tough',  label:'🛡 Живучий',  cls:'tough',
+    desc:'+50% HP',
+    apply: p => { p.maxHp = Math.round(p.maxHp * 1.5); p.hp = p.maxHp; } },
+  { id:'jumpy',  label:'🦘 Стрибучий',cls:'jumpy',
+    desc:'Вищі стрибки',
+    apply: p => { p.jumpForce *= 1.5; } },
+  { id:'fast',   label:'⚡ Швидкий',  cls:'fast',
+    desc:'Швидший рух',
+    apply: p => { p.speed *= 1.5; } },
+  { id:'heavy',  label:'🪨 Важкий',   cls:'heavy',
+    desc:'Сильна гравітація',
+    apply: p => { p.gravity *= 1.6; } },
+];
+
+// ══════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════
+let score = 0, wins = 0;
+let fighters = [];      // [charIndex, charIndex]
+let playerPick = -1;    // 0 or 1
+let assignedPowers = [[], []];
+let gameLoop = null;
+
+// ── Load from localStorage ──
+function loadStats() {
+  score = parseInt(localStorage.getItem('arena_score') || '0');
+  wins  = parseInt(localStorage.getItem('arena_wins')  || '0');
+  renderStats();
+}
+
+function saveStats() { localStorage.setItem('arena_score', score); localStorage.setItem('arena_wins', wins); }
+
+function renderStats() {
+  document.getElementById('stat-score').textContent = score;
+  document.getElementById('stat-wins').textContent  = wins;
+}
+
+function bumpStat(el) {
+  el.classList.remove('bump');
+  void el.offsetWidth;
+  el.classList.add('bump');
+  setTimeout(() => el.classList.remove('bump'), 300);
+}
+
+// ══════════════════════════════════════════════════
+//  BACKGROUND PARTICLES
+// ══════════════════════════════════════════════════
+(function createParticles() {
+  const wrap = document.getElementById('bg-particles');
+  const colors = ['#f0c040','#ff3355','#33aaff','#44ff88','#aa44ff'];
+  for (let i = 0; i < 18; i++) {
+    const el = document.createElement('div');
+    el.className = 'bg-particle';
+    const size = 4 + Math.random() * 12;
+    const dur  = 8 + Math.random() * 16;
+    el.style.cssText = `
+      width:${size}px;height:${size}px;
+      left:${Math.random()*100}vw;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${dur}s;
+      animation-delay:-${Math.random()*dur}s;
+    `;
+    wrap.appendChild(el);
+  }
+})();
+
+// ══════════════════════════════════════════════════
+//  SCREEN MANAGEMENT
+// ══════════════════════════════════════════════════
+const SCREENS = ['screen-start','screen-pick','screen-powers','screen-game','screen-win'];
+
+function showScreen(id) {
+  SCREENS.forEach(s => {
+    const el = document.getElementById(s);
+    if (s === id) { el.classList.remove('hidden'); }
+    else          { el.classList.add('hidden'); }
+  });
+}
+
+function showStart() {
+  stopGame();
+  showScreen('screen-start');
+}
+
+// ══════════════════════════════════════════════════
+//  START PICK
+// ══════════════════════════════════════════════════
+function startPick() {
+  stopGame();
+  // Pick 2 different random chars
+  const a = Math.floor(Math.random() * CHARS.length);
+  let b;
+  do { b = Math.floor(Math.random() * CHARS.length); } while (b === a);
+  fighters = [a, b];
+  playerPick = -1;
+
+  for (let i = 0; i < 2; i++) {
+    document.getElementById(`pick-img-${i}`).src  = IMG_PATH + CHARS[fighters[i]] + '.png';
+    document.getElementById(`pick-name-${i}`).textContent = CHARS[fighters[i]];
+  }
+  showScreen('screen-pick');
+}
+
+// ══════════════════════════════════════════════════
+//  PICK CHARACTER
+// ══════════════════════════════════════════════════
+function pickChar(idx) {
+  playerPick = idx;
+
+  // Highlight picked
+  document.querySelectorAll('.char-card').forEach((c, i) => {
+    c.style.borderColor = i === idx ? 'var(--gold)' : 'rgba(255,255,255,0.08)';
+    c.style.boxShadow   = i === idx ? 'var(--glow-gold)' : 'none';
+  });
+
+  setTimeout(showPowers, 400);
+}
+
+// ══════════════════════════════════════════════════
+//  POWERS SCREEN
+// ══════════════════════════════════════════════════
+function showPowers() {
+  // Assign 1-2 random powers to each fighter
+  assignedPowers = [[], []];
+  for (let i = 0; i < 2; i++) {
+    const count = 1 + Math.floor(Math.random() * 2);
+    const pool = [...POWERS_DEF];
+    for (let j = 0; j < count; j++) {
+      const ri = Math.floor(Math.random() * pool.length);
+      assignedPowers[i].push(pool[ri]);
+      pool.splice(ri, 1);
+    }
+  }
+
+  const row = document.getElementById('powers-row');
+  row.innerHTML = '';
+
+  for (let i = 0; i < 2; i++) {
+    const isPlayer = i === playerPick;
+    const div = document.createElement('div');
+    div.className = 'power-card';
+    div.innerHTML = `
+      <img src="${IMG_PATH}${CHARS[fighters[i]]}.png" alt="${CHARS[fighters[i]]}">
+      <div class="char-name" style="color:${isPlayer?'var(--gold)':'#ccc'}">${CHARS[fighters[i]]}${isPlayer?' 👤':''}</div>
+      <div class="power-list">${assignedPowers[i].map((p,di) =>
+        `<div class="power-badge ${p.cls}" style="animation-delay:${di*0.15}s">${p.label}</div>`
+      ).join('')}</div>
+    `;
+    row.appendChild(div);
+  }
+
+  showScreen('screen-powers');
+}
+
+// ══════════════════════════════════════════════════
+//  CANVAS GAME ENGINE
+// ══════════════════════════════════════════════════
+let canvas, ctx;
+let arenaR, arenaCX, arenaCY;
+let players = [];
+let hitEffects = [];
+let gameOver = false;
+
+/* ── Fighter object ── */
+function createFighter(idx) {
+  const charIdx = fighters[idx];
+  const isLeft  = idx === 0;
+
+  const img = new Image();
+  img.src = IMG_PATH + CHARS[charIdx] + '.png';
+
+  const f = {
+    idx, charIdx,
+    img,
+    name: CHARS[charIdx],
+    x: arenaCX + (isLeft ? -arenaR*0.45 : arenaR*0.45),
+    y: arenaCY,
+    vx: (isLeft ? 1 : -1) * (2 + Math.random()),
+    vy: -3 - Math.random() * 2,
+    radius: 28,
+    // base stats
+    speed:     2.5,
+    gravity:   0.28,
+    jumpForce: 7,
+    dmg:       1,
+    maxHp:     10,
+    hp:        10,
+    // sword angle (radians), rotates over time
+    swordAngle: isLeft ? 0.5 : Math.PI - 0.5,
+    swordRot:   (isLeft ? 1 : -1) * 0.04,
+    swordLen:   34,
+    color:      isLeft ? '#ff3355' : '#33aaff',
+    hitCooldown: 0,
+    flickerTimer: 0,
+  };
+
+  // Apply powers
+  assignedPowers[idx].forEach(p => p.apply(f));
+
+  // Apply speed to initial velocity
+  const speedFactor = f.speed / 2.5;
+  f.vx *= speedFactor;
+
+  return f;
+}
+
+/* ── Tip of sword in world coords ── */
+function swordTip(f) {
+  return {
+    x: f.x + Math.cos(f.swordAngle) * (f.radius + f.swordLen),
+    y: f.y + Math.sin(f.swordAngle) * (f.radius + f.swordLen),
+  };
+}
+
+/* ── Distance ── */
+function dist(x1,y1,x2,y2) { return Math.hypot(x2-x1, y2-y1); }
+
+/* ── Init canvas & arena ── */
+function initCanvas() {
+  canvas = document.getElementById('game-canvas');
+  ctx    = canvas.getContext('2d');
+
+  const vw = window.innerWidth;
+  const vh = window.innerHeight - 80; // header
+  const size = Math.min(vw * 0.92, vh * 0.88, 680);
+
+  canvas.width  = size;
+  canvas.height = size;
+
+  arenaR  = size * 0.47;
+  arenaCX = size / 2;
+  arenaCY = size / 2;
+}
+
+/* ── Start game ── */
+function startGame() {
+  initCanvas();
+
+  players = [createFighter(0), createFighter(1)];
+  hitEffects = [];
+  gameOver   = false;
+
+  // HUD labels
+  for (let i = 0; i < 2; i++) {
+    document.getElementById(`hud-name-${i}`).textContent  = players[i].name.toUpperCase();
+    document.getElementById(`hp-val-${i}`).textContent    = players[i].hp + ' HP';
+    document.getElementById(`hp-bar-${i}`).style.width    = '100%';
+  }
+
+  showScreen('screen-game');
+
+  if (gameLoop) cancelAnimationFrame(gameLoop);
+  loop();
+}
+
+/* ── Stop ── */
+function stopGame() {
+  if (gameLoop) { cancelAnimationFrame(gameLoop); gameLoop = null; }
+}
+
+/* ── Main loop ── */
+function loop() {
+  if (gameOver) return;
+  update();
+  draw();
+  gameLoop = requestAnimationFrame(loop);
+}
+
+/* ── UPDATE ── */
+function update() {
+  players.forEach(f => {
+    // Gravity
+    f.vy += f.gravity;
+
+    // Move
+    f.x += f.vx;
+    f.y += f.vy;
+
+    // Bounce inside circle arena
+    const dx = f.x - arenaCX;
+    const dy = f.y - arenaCY;
+    const d  = Math.hypot(dx, dy);
+    const maxD = arenaR - f.radius;
+
+    if (d > maxD) {
+      // Push back
+      const nx = dx / d, ny = dy / d;
+      f.x = arenaCX + nx * maxD;
+      f.y = arenaCY + ny * maxD;
+
+      // Reflect velocity
+      const dot = f.vx * nx + f.vy * ny;
+      f.vx -= 2 * dot * nx;
+      f.vy -= 2 * dot * ny;
+
+      // Damping + small jump
+      f.vx *= 0.82;
+      f.vy *= 0.82;
+
+      // Random jump on wall hit
+      if (Math.random() < 0.55) {
+        f.vy -= f.jumpForce * (0.6 + Math.random() * 0.6);
+      }
+    }
+
+    // Sword rotation
+    f.swordAngle += f.swordRot;
+
+    // Cooldowns
+    if (f.hitCooldown  > 0) f.hitCooldown--;
+    if (f.flickerTimer > 0) f.flickerTimer--;
+  });
+
+  // ── Sword collision detection ──
+  for (let i = 0; i < 2; i++) {
+    const attacker = players[i];
+    const victim   = players[1 - i];
+
+    if (attacker.hitCooldown > 0) continue;
+
+    const tip = swordTip(attacker);
+    const d   = dist(tip.x, tip.y, victim.x, victim.y);
+
+    if (d < victim.radius + 6) {
+      // HIT!
+      victim.hp -= attacker.dmg;
+      if (victim.hp < 0) victim.hp = 0;
+
+      victim.hitCooldown  = 28;
+      attacker.hitCooldown = 14;
+      victim.flickerTimer  = 20;
+
+      // Knockback
+      const kbx = (victim.x - attacker.x) / Math.max(1, dist(victim.x, victim.y, attacker.x, attacker.y));
+      const kby = (victim.y - attacker.y) / Math.max(1, dist(victim.x, victim.y, attacker.x, attacker.y));
+      victim.vx += kbx * 4;
+      victim.vy += kby * 4 - 2;
+
+      // Hit effect
+      hitEffects.push({
+        x: victim.x, y: victim.y,
+        r: 0, maxR: victim.radius * 1.8,
+        alpha: 1,
+        color: attacker.color,
+      });
+
+      // Update HUD
+      updateHUD();
+
+      if (victim.hp <= 0) {
+        endGame(attacker.idx);
+        return;
+      }
+    }
+  }
+
+  // Update hit effects
+  hitEffects.forEach(e => { e.r += 4; e.alpha -= 0.08; });
+  hitEffects = hitEffects.filter(e => e.alpha > 0);
+}
+
+/* ── UPDATE HUD ── */
+function updateHUD() {
+  for (let i = 0; i < 2; i++) {
+    const f = players[i];
+    const pct = (f.hp / f.maxHp * 100).toFixed(1) + '%';
+    document.getElementById(`hp-bar-${i}`).style.width = pct;
+    document.getElementById(`hp-val-${i}`).textContent = f.hp + ' HP';
+  }
+}
+
+/* ── DRAW ── */
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Arena circle background
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(arenaCX, arenaCY, arenaR, 0, Math.PI * 2);
+  ctx.fillStyle = '#080814';
+  ctx.fill();
+
+  // Arena glow ring
+  const grad = ctx.createRadialGradient(arenaCX, arenaCY, arenaR * 0.7, arenaCX, arenaCY, arenaR);
+  grad.addColorStop(0, 'transparent');
+  grad.addColorStop(1, 'rgba(240,192,64,0.08)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(240,192,64,0.35)';
+  ctx.lineWidth   = 2.5;
+  ctx.stroke();
+  ctx.restore();
+
+  // Inner grid pattern inside arena (clip)
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(arenaCX, arenaCY, arenaR, 0, Math.PI * 2);
+  ctx.clip();
+
+  // Faint grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+  ctx.lineWidth = 1;
+  const step = 36;
+  for (let x = -arenaR; x < arenaR; x += step) {
+    ctx.beginPath(); ctx.moveTo(arenaCX + x, arenaCY - arenaR); ctx.lineTo(arenaCX + x, arenaCY + arenaR); ctx.stroke();
+  }
+  for (let y = -arenaR; y < arenaR; y += step) {
+    ctx.beginPath(); ctx.moveTo(arenaCX - arenaR, arenaCY + y); ctx.lineTo(arenaCX + arenaR, arenaCY + y); ctx.stroke();
+  }
+  ctx.restore();
+
+  // Hit effects (behind characters)
+  hitEffects.forEach(e => {
+    ctx.save();
+    ctx.globalAlpha = e.alpha;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+    ctx.fillStyle = e.color;
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // Draw fighters
+  players.forEach(f => drawFighter(f));
+}
+
+function drawFighter(f) {
+  ctx.save();
+
+  // Flicker on hit
+  if (f.flickerTimer > 0 && Math.floor(f.flickerTimer / 3) % 2 === 0) {
+    ctx.globalAlpha = 0.35;
+  }
+
+  // Shadow
+  ctx.shadowColor   = f.color;
+  ctx.shadowBlur    = 18;
+
+  // Character sprite (circle fallback + image)
+  const s = f.radius * 2 + 8;
+  if (f.img.complete && f.img.naturalWidth > 0) {
+    // Обрізаємо справжнє фото у вигляді кола для гри
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, f.radius + 4, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(f.img, f.x - s/2, f.y - s/2, s, s);
+    ctx.restore();
+  } else {
+    // Fallback circle if image missing
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+    ctx.fillStyle = f.color;
+    ctx.fill();
+    // Name text
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold 10px Rajdhani, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(f.name[0], f.x, f.y);
+  }
+
+  // ── Draw sword ──
+  ctx.shadowColor = f.color;
+  ctx.shadowBlur  = 14;
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth   = 3;
+  ctx.lineCap     = 'round';
+
+  const sx = f.x + Math.cos(f.swordAngle) * f.radius;
+  const sy = f.y + Math.sin(f.swordAngle) * f.radius;
+  const ex = f.x + Math.cos(f.swordAngle) * (f.radius + f.swordLen);
+  const ey = f.y + Math.sin(f.swordAngle) * (f.radius + f.swordLen);
+
+  // Blade gradient
+  const bladeGrad = ctx.createLinearGradient(sx, sy, ex, ey);
+  bladeGrad.addColorStop(0, f.color);
+  bladeGrad.addColorStop(1, '#ffffff');
+  ctx.strokeStyle = bladeGrad;
+
+  ctx.beginPath();
+  ctx.moveTo(sx, sy);
+  ctx.lineTo(ex, ey);
+  ctx.stroke();
+
+  // Sword tip glow dot
+  ctx.beginPath();
+  ctx.arc(ex, ey, 4, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.shadowBlur = 20;
+  ctx.fill();
+
+  // Guard (crosspiece)
+  const gx = f.x + Math.cos(f.swordAngle) * (f.radius + 4);
+  const gy = f.y + Math.sin(f.swordAngle) * (f.radius + 4);
+  const perpX = -Math.sin(f.swordAngle) * 8;
+  const perpY =  Math.cos(f.swordAngle) * 8;
+  ctx.strokeStyle = f.color;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(gx - perpX, gy - perpY);
+  ctx.lineTo(gx + perpX, gy + perpY);
+  ctx.stroke();
+
+  ctx.restore();
+
+  // Name tag below character
+  ctx.save();
+  ctx.font = 'bold 11px Rajdhani, sans-serif';
+  ctx.fillStyle = f.color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.shadowColor = f.color; ctx.shadowBlur = 10;
+  ctx.fillText(f.name, f.x, f.y + f.radius + 5);
+  ctx.restore();
+}
+
+/* ── END GAME ── */
+function endGame(winnerIdx) {
+  gameOver = true;
+  stopGame();
+
+  const winner  = players[winnerIdx];
+  const didWin  = winnerIdx === playerPick;
+
+  let gained = 0;
+  if (didWin) {
+    gained = 10 + Math.floor(Math.random() * 6); // 10-15 points
+    score += gained;
+    wins  += 1;
+    saveStats();
+    renderStats();
+    bumpStat(document.getElementById('stat-score'));
+    bumpStat(document.getElementById('stat-wins'));
+  }
+
+  // Win screen
+  document.getElementById('win-img').src = IMG_PATH + winner.name + '.png';
+
+  if (didWin) {
+    document.getElementById('win-title').textContent = '🏆 Ти переміг!';
+    document.getElementById('win-title').className   = 'win-title player-won';
+    document.getElementById('win-subtitle').textContent = winner.name + ' здобув перемогу!';
+    document.getElementById('win-score-gained').textContent = `+${gained} балів`;
+  } else {
+    document.getElementById('win-title').textContent = '💀 Ти програв...';
+    document.getElementById('win-title').className   = 'win-title player-lost';
+    document.getElementById('win-subtitle').textContent = winner.name + ' переміг!';
+    document.getElementById('win-score-gained').textContent = '+0 балів';
+  }
+
+  setTimeout(() => showScreen('screen-win'), 600);
+}
+
+// ══════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════
+loadStats();
+showScreen('screen-start');
+</script>
+</body>
+</html>
