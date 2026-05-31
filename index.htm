@@ -528,26 +528,75 @@
 // ══════════════════════════════════════════════════
 //  DATA
 // ══════════════════════════════════════════════════
-const CHARS = ['Tito','Smartik','Junior','Fil','Milka','Bark'];
+// Додано 14 нових героїв, разом тепер 20 персонажів!
+const CHARS = [
+  'Tito','Smartik','Junior','Fil','Milka','Bark',
+  'Persik','Spike','Alyonka','Lilu','Manya','Liza',
+  'Grivna','Ben','Goldi','Raf','Veles','Masha',
+  'Brilliantik','Richik'
+];
 const IMG_PATH = ''; // Тепер шукає фото прямо в папці з грою!
 
-const POWERS_DEF = [
-  { id:'strong', label:'💪 Сильний', cls:'strong',
-    desc:'Подвійний урон',
-    apply: p => { p.dmg *= 2; } },
-  { id:'tough',  label:'🛡 Живучий',  cls:'tough',
-    desc:'+50% HP',
-    apply: p => { p.maxHp = Math.round(p.maxHp * 1.5); p.hp = p.maxHp; } },
-  { id:'jumpy',  label:'🦘 Стрибучий',cls:'jumpy',
-    desc:'Вищі стрибки',
-    apply: p => { p.jumpForce *= 1.5; } },
-  { id:'fast',   label:'⚡ Швидкий',  cls:'fast',
-    desc:'Швидший рух',
-    apply: p => { p.speed *= 1.5; } },
-  { id:'heavy',  label:'🪨 Важкий',   cls:'heavy',
-    desc:'Сильна гравітація',
-    apply: p => { p.gravity *= 1.6; } },
+// Шаблони назв та властивостей для генерації понад 100 суперсил
+const POWER_PREFIXES = [
+  { text: "🔥 Вогняний", cls: "strong", mod: f => { f.dmg += 1.5; f.swordLen += 5; } },
+  { text: "⚡ Блискавичний", cls: "fast", mod: f => { f.speed += 1.8; f.swordRot += 0.03; } },
+  { text: "🛡 Титановий", cls: "tough", mod: f => { f.maxHp += 15; f.hp += 15; } },
+  { text: "🌌 Космічний", cls: "jumpy", mod: f => { f.jumpForce += 4; f.gravity -= 0.05; } },
+  { text: "🪨 Алмазний", cls: "heavy", mod: f => { f.maxHp += 25; f.hp += 25; f.gravity += 0.1; } },
+  { text: "☠ Кислотний", cls: "strong", mod: f => { f.dmg += 2; } },
+  { text: "✨ Магічний", cls: "jumpy", mod: f => { f.swordLen += 15; f.speed += 0.5; } },
+  { text: "🔮 Квантовий", cls: "fast", mod: f => { f.speed += 2.2; f.jumpForce += 2; } },
+  { text: "❄ Льодяний", cls: "tough", mod: f => { f.maxHp += 10; f.swordLen += 8; } },
+  { text: "🔱 Неоновий", cls: "heavy", mod: f => { f.dmg += 1.2; f.maxHp += 12; f.hp += 12; } }
 ];
+
+const POWER_ROOTS = [
+  { text: "Воїн", mod: f => { f.dmg += 0.5; f.maxHp += 5; f.hp += 5; } },
+  { text: "Мутант", mod: f => { f.speed += 0.6; f.jumpForce += 1.5; } },
+  { text: "Гігант", mod: f => { f.radius += 8; f.maxHp += 20; f.hp += 20; f.dmg += 1.5; f.swordLen += 10; } },
+  { text: "Привид", mod: f => { f.gravity -= 0.08; f.speed += 1.2; } },
+  { text: "Владик", mod: f => { f.dmg += 2.5; } },
+  { text: "Захисник", mod: f => { f.maxHp += 30; f.hp += 30; f.speed -= 0.4; } },
+  { text: "Спринтер", mod: f => { f.speed += 2.5; f.swordRot += 0.05; } },
+  { text: "Ніндзя", mod: f => { f.swordRot += 0.08; f.jumpForce += 3; } },
+  { text: "Кіборг", mod: f => { f.maxHp += 15; f.hp += 15; f.dmg += 1; } },
+  { text: "Метеор", mod: f => { f.gravity += 0.15; f.dmg += 2; } }
+];
+
+const POWER_SUFFIXES = [
+  { text: "Хаосу", mod: f => { f.dmg += 1; f.speed += 0.4; } },
+  { text: "Галактики", mod: f => { f.maxHp += 10; f.hp += 10; f.jumpForce += 1; } },
+  { text: "Арени", mod: f => { f.swordLen += 12; } },
+  { text: "Безодні", mod: f => { f.dmg += 3; f.gravity += 0.05; } },
+  { text: "Світла", mod: f => { f.speed += 1.5; f.maxHp += 5; f.hp += 5; } },
+  { text: "Темряви", mod: f => { f.dmg += 2; f.swordRot += 0.02; } },
+  { text: "Часу", mod: f => { f.speed += 1.0; f.swordRot += 0.04; } },
+  { text: "Енергії", mod: f => { f.maxHp += 8; f.hp += 8; f.dmg += 0.8; } },
+  { text: "Майбутнього", mod: f => { f.swordLen += 6; f.speed += 1.2; } },
+  { text: "Сталі", mod: f => { f.maxHp += 18; f.hp += 18; } }
+];
+
+// Автоматична генерація бази з понад 100 унікальних суперсил (10 * 10 * 10 = 1000 варіантів!)
+const POWERS_DEF = [];
+let powerIdCounter = 0;
+
+for (let p of POWER_PREFIXES) {
+  for (let r of POWER_ROOTS) {
+    for (let s of POWER_SUFFIXES) {
+      POWERS_DEF.push({
+        id: `gen_power_${powerIdCounter++}`,
+        label: `${p.text} ${r.text} ${s.text}`,
+        cls: p.cls,
+        apply: (f) => {
+          p.mod(f);
+          r.mod(f);
+          s.mod(f);
+        }
+      });
+    }
+  }
+}
 
 // ══════════════════════════════════════════════════
 //  STATE
@@ -657,7 +706,7 @@ function pickChar(idx) {
 //  POWERS SCREEN
 // ══════════════════════════════════════════════════
 function showPowers() {
-  // Assign 1-2 random powers to each fighter
+  // Кожен боєць отримує від 1 до 2 абсолютно випадкових суперсил зі списку 100+ варіантів
   assignedPowers = [[], []];
   for (let i = 0; i < 2; i++) {
     const count = 1 + Math.floor(Math.random() * 2);
@@ -734,6 +783,9 @@ function createFighter(idx) {
   // Apply powers
   assignedPowers[idx].forEach(p => p.apply(f));
 
+  // Оновлюємо поточне HP після застосування сил
+  if (f.hp < f.maxHp) f.hp = f.maxHp;
+
   // Apply speed to initial velocity
   const speedFactor = f.speed / 2.5;
   f.vx *= speedFactor;
@@ -780,7 +832,7 @@ function startGame() {
   // HUD labels
   for (let i = 0; i < 2; i++) {
     document.getElementById(`hud-name-${i}`).textContent  = players[i].name.toUpperCase();
-    document.getElementById(`hp-val-${i}`).textContent    = players[i].hp + ' HP';
+    document.getElementById(`hp-val-${i}`).textContent    = Math.round(players[i].hp) + ' HP';
     document.getElementById(`hp-bar-${i}`).style.width    = '100%';
   }
 
@@ -902,7 +954,7 @@ function updateHUD() {
     const f = players[i];
     const pct = (f.hp / f.maxHp * 100).toFixed(1) + '%';
     document.getElementById(`hp-bar-${i}`).style.width = pct;
-    document.getElementById(`hp-val-${i}`).textContent = f.hp + ' HP';
+    document.getElementById(`hp-val-${i}`).textContent = Math.round(f.hp) + ' HP';
   }
 }
 
@@ -992,10 +1044,10 @@ function drawFighter(f) {
     ctx.fill();
     // Name text
     ctx.fillStyle = '#fff';
-    ctx.font = `bold 10px Rajdhani, sans-serif`;
+    ctx.font = `bold 14px Rajdhani, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(f.name[0], f.x, f.y);
+    ctx.fillText(f.name.substring(0, 3), f.x, f.y);
   }
 
   // ── Draw sword ──
